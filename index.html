@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f1eb" />
+  <title>Medicine Plan — Editable Example</title>
+  <style>
+    /* ============================================================
+       LIQUID GLASS — Apple-inspired, 2025 aesthetic
+       Glossier surfaces, more depth, tunable via CSS variables.
+       Every text field marked contenteditable is inline-editable.
+       Data persists to localStorage automatically.
+       ============================================================ */
+
+    :root {
+      /* Warm cream + subtle iridescence backdrop */
+      --bg-a: #f7f2ea;
+      --bg-b: #ece7dd;
+      --bg-c: #dfd6c6;
+
+      --ink: #1a1a1f;
+      --ink-2: #4a4a52;
+      --ink-3: #7a7a85;
+      --line: rgba(0, 0, 0, 0.055);
+
+      /* Glass — brighter, more translucent, with strong specular */
+      --glass-bg: rgba(255, 255, 255, 0.42);
+      --glass-bg-strong: rgba(255, 255, 255, 0.62);
+      --glass-border-top: rgba(255, 255, 255, 0.85);
+      --glass-border-bottom: rgba(255, 255, 255, 0.15);
+
+      /* Shadow: crisp near-shadow + soft ambient + inner top-light */
+      --shadow:
+        0 1px 1px rgba(20, 20, 30, 0.05),
+        0 6px 20px rgba(20, 20, 30, 0.08),
+        0 22px 44px rgba(20, 20, 30, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+
+      --shadow-hover:
+        0 2px 3px rgba(20, 20, 30, 0.06),
+        0 10px 28px rgba(20, 20, 30, 0.12),
+        0 30px 60px rgba(20, 20, 30, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+
+      /* Accent — muted teal + warm amber pair */
+      --accent: #0f7a70;
+      --accent-glow: rgba(15, 122, 112, 0.35);
+      --accent-2: #b26a19;
+      --warn: #c0392b;
+      --warn-bg: rgba(192, 57, 43, 0.10);
+      --warn-glow: rgba(192, 57, 43, 0.28);
+
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+              "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+      /* Edit affordance color */
+      --edit-hint: rgba(15, 122, 112, 0.10);
+      --edit-focus: rgba(15, 122, 112, 0.18);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-a: #16161b;
+        --bg-b: #1c1c22;
+        --bg-c: #24242c;
+
+        --ink: #f2f2f7;
+        --ink-2: #c7c7cf;
+        --ink-3: #8e8e94;
+        --line: rgba(255, 255, 255, 0.08);
+
+        --glass-bg: rgba(60, 60, 68, 0.42);
+        --glass-bg-strong: rgba(70, 70, 80, 0.60);
+        --glass-border-top: rgba(255, 255, 255, 0.18);
+        --glass-border-bottom: rgba(255, 255, 255, 0.03);
+
+        --shadow:
+          0 1px 1px rgba(0, 0, 0, 0.5),
+          0 8px 24px rgba(0, 0, 0, 0.45),
+          0 24px 60px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.10),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+
+        --shadow-hover:
+          0 2px 3px rgba(0, 0, 0, 0.55),
+          0 12px 32px rgba(0, 0, 0, 0.55),
+          0 32px 72px rgba(0, 0, 0, 0.45),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+
+        --accent: #4dd4c4;
+        --accent-glow: rgba(77, 212, 196, 0.32);
+        --accent-2: #e0a25c;
+        --warn: #ff6b5e;
+        --warn-bg: rgba(255, 107, 94, 0.14);
+        --warn-glow: rgba(255, 107, 94, 0.32);
+
+        --edit-hint: rgba(77, 212, 196, 0.10);
+        --edit-focus: rgba(77, 212, 196, 0.18);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      line-height: 1.5;
+      /* Rich, iridescent backdrop with multiple radial gradients */
+      background:
+        radial-gradient(1000px 500px at 8% -6%, rgba(15, 122, 112, 0.20), transparent 55%),
+        radial-gradient(900px 460px at 100% 0%, rgba(178, 106, 25, 0.16), transparent 60%),
+        radial-gradient(700px 380px at 50% 110%, rgba(15, 122, 112, 0.12), transparent 60%),
+        linear-gradient(180deg, var(--bg-a), var(--bg-b) 55%, var(--bg-c));
+      background-attachment: fixed;
+    }
+
+    /* ---- Save banner ---- */
+    .save-banner {
+      position: fixed;
+      top: env(safe-area-inset-top, 12px);
+      left: 50%;
+      transform: translate(-50%, -80px);
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(30px) saturate(1.6);
+      -webkit-backdrop-filter: blur(30px) saturate(1.6);
+      border: 1px solid var(--glass-border-top);
+      color: var(--ink);
+      padding: 10px 18px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 100;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .save-banner.show {
+      transform: translate(-50%, 12px);
+    }
+
+    .save-banner::before {
+      content: "✓";
+      color: var(--accent);
+      margin-right: 6px;
+      font-weight: 800;
+    }
+
+    /* ---- Wrap ---- */
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: max(env(safe-area-inset-top), 20px) 16px 60px;
+    }
+
+    /* ============================================================
+       HERO — the flagship glass card with strong specular highlight
+       ============================================================ */
+    .hero {
+      position: sticky;
+      top: 14px;
+      z-index: 10;
+      margin-bottom: 18px;
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(36px) saturate(1.7);
+      -webkit-backdrop-filter: blur(36px) saturate(1.7);
+      border: 1px solid var(--glass-border-top);
+      border-bottom: 1px solid var(--glass-border-bottom);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 24px 24px 22px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top specular sheen — the "glossy" look */
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 55%;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.65) 0%,
+        rgba(255, 255, 255, 0.10) 40%,
+        transparent 100%
+      );
+      pointer-events: none;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .hero::before {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.14) 0%,
+          rgba(255, 255, 255, 0.03) 40%,
+          transparent 100%
+        );
+      }
+    }
+
+    /* Bottom edge glow — the "refracted light" underneath */
+    .hero::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 20%;
+      right: 20%;
+      height: 24px;
+      background: radial-gradient(
+        ellipse at center bottom,
+        rgba(15, 122, 112, 0.18) 0%,
+        transparent 70%
+      );
+      pointer-events: none;
+      filter: blur(6px);
+    }
+
+    .hero > * { position: relative; z-index: 1; }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(26px, 5.4vw, 34px);
+      letter-spacing: -0.025em;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--ink-2);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ============================================================
+       META pills — mini glass chips with subtle sheen
+       ============================================================ */
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .pill {
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(1.5);
+      -webkit-backdrop-filter: blur(24px) saturate(1.5);
+      border: 1px solid var(--glass-border-top);
+      border-bottom-color: var(--glass-border-bottom);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      overflow: hidden;
+      transition: box-shadow 0.25s ease, transform 0.2s ease;
+    }
+
+    .pill:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Sheen on each pill */
+    .pill::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 55%;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.55),
+        transparent
+      );
+      pointer-events: none;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .pill::before {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.10),
+          transparent
+        );
+      }
+    }
+
+    .pill > * { position: relative; z-index: 1; }
+
+    .pill .label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      margin-bottom: 4px;
+    }
+
+    .pill .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* ============================================================
+       CARD — main content container
+       ============================================================ */
+    .card {
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px) saturate(1.5);
+      -webkit-backdrop-filter: blur(30px) saturate(1.5);
+      border: 1px solid var(--glass-border-top);
+      border-bottom-color: var(--glass-border-bottom);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.06) 45%,
+        transparent 100%
+      );
+      pointer-events: none;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .card::before {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.10) 0%,
+          rgba(255, 255, 255, 0.02) 45%,
+          transparent 100%
+        );
+      }
+    }
+
+    .card > * { position: relative; z-index: 1; }
+
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 19px;
+      letter-spacing: -0.015em;
+      font-weight: 700;
+    }
+
+    .card .desc {
+      margin: 0 0 16px;
+      color: var(--ink-2);
+      font-size: 13px;
+    }
+
+    /* ---- Slot: a time-of-day block within a card ---- */
+    .slot {
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .slot {
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+    }
+
+    .slot:last-child { margin-bottom: 0; }
+
+    .slot-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+
+    .time {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 14px;
+      text-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .when {
+      color: var(--ink-3);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      font-weight: 600;
+    }
+
+    /* ---- Med list ---- */
+    ul.meds {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    ul.meds li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    ul.meds li::before {
+      content: "";
+      display: block;
+      flex: 0 0 auto;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      margin-top: 9px;
+    }
+
+    ul.meds .name {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    ul.meds .dose {
+      color: var(--ink-2);
+    }
+
+    /* ---- SOS card variant ---- */
+    .card.warn {
+      border-left: 3px solid var(--warn);
+    }
+
+    .card.warn .time {
+      color: var(--warn);
+      text-shadow: 0 0 20px var(--warn-glow);
+    }
+
+    .card.warn .badge {
+      background: var(--warn-bg);
+      color: var(--warn);
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(15, 122, 112, 0.10);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    /* ============================================================
+       CHECKLIST
+       ============================================================ */
+    .checklist {
+      display: grid;
+      gap: 10px;
+    }
+
+    .check {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .check {
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+    }
+
+    .check:hover {
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .check:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+    }
+
+    .check .box {
+      flex: 0 0 auto;
+      width: 22px;
+      height: 22px;
+      margin-top: 2px;
+      border: 2px solid var(--ink-3);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.7);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .check .box {
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .check.done .box {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .check.done .box::after {
+      content: "✓";
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .check .content {
+      flex: 1 1 auto;
+    }
+
+    .check .content strong {
+      display: block;
+      font-size: 14px;
+      color: var(--ink);
+      margin-bottom: 2px;
+      font-weight: 700;
+    }
+
+    .check .content span {
+      font-size: 13px;
+      color: var(--ink-2);
+    }
+
+    /* ============================================================
+       EDITABLE FIELDS — key affordance
+       ============================================================ */
+    [contenteditable="true"] {
+      cursor: text;
+      outline: none;
+      border-radius: 6px;
+      padding: 1px 5px;
+      margin: -1px -5px;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      /* Subtle underline dots hint that this is editable */
+      background-image: linear-gradient(
+        to right,
+        var(--edit-hint) 25%,
+        transparent 25%,
+        transparent 50%,
+        var(--edit-hint) 50%,
+        var(--edit-hint) 75%,
+        transparent 75%
+      );
+      background-size: 8px 1px;
+      background-position: 0 100%;
+      background-repeat: repeat-x;
+    }
+
+    [contenteditable="true"]:hover {
+      background-color: var(--edit-hint);
+      background-image: none;
+    }
+
+    [contenteditable="true"]:focus {
+      background-color: var(--edit-focus);
+      background-image: none;
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    /* Disable editable hint on headings that don't need it */
+    .hero h1[contenteditable="true"],
+    .card h2[contenteditable="true"] {
+      background-image: linear-gradient(
+        to right,
+        var(--edit-hint) 25%,
+        transparent 25%,
+        transparent 50%,
+        var(--edit-hint) 50%,
+        var(--edit-hint) 75%,
+        transparent 75%
+      );
+      background-size: 8px 1px;
+      background-position: 0 100%;
+      background-repeat: repeat-x;
+    }
+
+    /* Edit mode toolbar */
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar button {
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid var(--glass-border-top);
+      border-bottom-color: var(--glass-border-bottom);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+
+    .toolbar button:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .toolbar button:active {
+      transform: translateY(0);
+    }
+
+    .toolbar button.primary {
+      background: var(--accent);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* ---- Note card ---- */
+    .note {
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(1.3);
+      -webkit-backdrop-filter: blur(24px) saturate(1.3);
+      border: 1px solid var(--glass-border-top);
+      border-bottom-color: var(--glass-border-bottom);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 20px 22px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .note::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.5), transparent);
+      pointer-events: none;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .note::before {
+        background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent);
+      }
+    }
+
+    .note > * { position: relative; z-index: 1; }
+
+    .note h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .note p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--ink-2);
+    }
+
+    .note p:last-child { margin-bottom: 0; }
+
+    .foot {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--ink-3);
+      font-size: 12px;
+    }
+
+    /* ---- Motion respect ---- */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+
+    /* ---- Tablet+ layout ---- */
+    @media (min-width: 720px) {
+      .meta {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="save-banner" id="save-banner">Saved</div>
+
+  <main class="wrap">
+
+    <!-- ================= TOOLBAR ================= -->
+    <div class="toolbar">
+      <button id="print-btn" title="Print this schedule">🖨 Print</button>
+      <button id="reset-btn" title="Reset to defaults">↺ Reset</button>
+    </div>
+
+    <!-- ================= HERO ================= -->
+    <header class="hero" role="banner">
+      <h1 contenteditable="true" data-field="title" spellcheck="false">Medicine Plan</h1>
+      <p contenteditable="true" data-field="subtitle" spellcheck="false">Tap any text to edit. Changes save automatically to this device. Always verify against the signed prescription.</p>
+    </header>
+
+    <!-- ================= META ================= -->
+    <section class="meta" aria-label="Plan overview">
+      <div class="pill">
+        <span class="label">Patient</span>
+        <span class="value" contenteditable="true" data-field="patient" spellcheck="false">Family Member</span>
+      </div>
+      <div class="pill">
+        <span class="label">Main treatment</span>
+        <span class="value" contenteditable="true" data-field="treatment" spellcheck="false">Ongoing regimen</span>
+      </div>
+      <div class="pill">
+        <span class="label">Use this for</span>
+        <span class="value" contenteditable="true" data-field="usefor" spellcheck="false">Daily reference</span>
+      </div>
+      <div class="pill">
+        <span class="label">Reminder</span>
+        <span class="value" contenteditable="true" data-field="reminder" spellcheck="false">Verify each dose</span>
+      </div>
+    </section>
+
+    <!-- ================= MORNING CARD ================= -->
+    <section class="card" aria-label="Morning and daytime">
+      <h2 contenteditable="true" data-field="card1_title" spellcheck="false">Morning &amp; Daytime</h2>
+      <p class="desc" contenteditable="true" data-field="card1_desc" spellcheck="false">Doses to take through the first half of the day.</p>
+
+      <div class="slot">
+        <div class="slot-head">
+          <div class="time" contenteditable="true" data-field="slot1_time" spellcheck="false">Before breakfast</div>
+          <div class="when" contenteditable="true" data-field="slot1_when" spellcheck="false">Empty stomach</div>
+        </div>
+        <ul class="meds">
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot1_med1_name" spellcheck="false">[Medicine A]</span> —
+            <span class="dose" contenteditable="true" data-field="slot1_med1_dose" spellcheck="false">1 tablet, once daily</span>
+          </span></li>
+        </ul>
+        <span class="badge" contenteditable="true" data-field="slot1_badge" spellcheck="false">Take before food</span>
+      </div>
+
+      <div class="slot">
+        <div class="slot-head">
+          <div class="time" contenteditable="true" data-field="slot2_time" spellcheck="false">Morning</div>
+          <div class="when" contenteditable="true" data-field="slot2_when" spellcheck="false">With breakfast</div>
+        </div>
+        <ul class="meds">
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot2_med1_name" spellcheck="false">[Medicine B]</span> —
+            <span class="dose" contenteditable="true" data-field="slot2_med1_dose" spellcheck="false">1 tablet, once daily</span>
+          </span></li>
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot2_med2_name" spellcheck="false">[Supplement]</span> —
+            <span class="dose" contenteditable="true" data-field="slot2_med2_dose" spellcheck="false">1 capsule, twice daily</span>
+          </span></li>
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot2_med3_name" spellcheck="false">[Medicine C]</span> —
+            <span class="dose" contenteditable="true" data-field="slot2_med3_dose" spellcheck="false">1 tablet, once daily</span>
+          </span></li>
+        </ul>
+      </div>
+
+      <div class="slot">
+        <div class="slot-head">
+          <div class="time" contenteditable="true" data-field="slot3_time" spellcheck="false">Afternoon</div>
+          <div class="when" contenteditable="true" data-field="slot3_when" spellcheck="false">With or after food</div>
+        </div>
+        <ul class="meds">
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot3_med1_name" spellcheck="false">[Medicine D]</span> —
+            <span class="dose" contenteditable="true" data-field="slot3_med1_dose" spellcheck="false">1 tablet, twice daily</span>
+          </span></li>
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot3_med2_name" spellcheck="false">[Supplement]</span> —
+            <span class="dose" contenteditable="true" data-field="slot3_med2_dose" spellcheck="false">second dose</span>
+          </span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= EVENING CARD ================= -->
+    <section class="card" aria-label="Evening and night">
+      <h2 contenteditable="true" data-field="card2_title" spellcheck="false">Evening &amp; Night</h2>
+      <p class="desc" contenteditable="true" data-field="card2_desc" spellcheck="false">Doses to take through the evening and at bedtime.</p>
+
+      <div class="slot">
+        <div class="slot-head">
+          <div class="time" contenteditable="true" data-field="slot4_time" spellcheck="false">Evening</div>
+          <div class="when" contenteditable="true" data-field="slot4_when" spellcheck="false">After dinner</div>
+        </div>
+        <ul class="meds">
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot4_med1_name" spellcheck="false">[Medicine E]</span> —
+            <span class="dose" contenteditable="true" data-field="slot4_med1_dose" spellcheck="false">1 tablet, once daily</span>
+          </span></li>
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot4_med2_name" spellcheck="false">[Medicine D]</span> —
+            <span class="dose" contenteditable="true" data-field="slot4_med2_dose" spellcheck="false">second dose</span>
+          </span></li>
+        </ul>
+      </div>
+
+      <div class="slot">
+        <div class="slot-head">
+          <div class="time" contenteditable="true" data-field="slot5_time" spellcheck="false">Bedtime</div>
+          <div class="when" contenteditable="true" data-field="slot5_when" spellcheck="false">Just before sleep</div>
+        </div>
+        <ul class="meds">
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot5_med1_name" spellcheck="false">[Medicine F]</span> —
+            <span class="dose" contenteditable="true" data-field="slot5_med1_dose" spellcheck="false">1 tablet, once daily</span>
+          </span></li>
+        </ul>
+        <span class="badge" contenteditable="true" data-field="slot5_badge" spellcheck="false">Night dose</span>
+      </div>
+    </section>
+
+    <!-- ================= SOS CARD ================= -->
+    <section class="card warn" aria-label="Emergency only">
+      <h2 contenteditable="true" data-field="card3_title" spellcheck="false">SOS — Only If Needed</h2>
+      <p class="desc" contenteditable="true" data-field="card3_desc" spellcheck="false">Do not give routinely. Follow the specific condition below.</p>
+
+      <div class="slot">
+        <div class="slot-head">
+          <div class="time" contenteditable="true" data-field="slot6_time" spellcheck="false">SOS</div>
+          <div class="when" contenteditable="true" data-field="slot6_when" spellcheck="false">Only when condition is met</div>
+        </div>
+        <ul class="meds">
+          <li><span>
+            <span class="name" contenteditable="true" data-field="slot6_med1_name" spellcheck="false">[Emergency Medicine]</span> —
+            <span class="dose" contenteditable="true" data-field="slot6_med1_dose" spellcheck="false">Give only if [specific condition] as advised by the doctor</span>
+          </span></li>
+        </ul>
+        <span class="badge" contenteditable="true" data-field="slot6_badge" spellcheck="false">Do not use unless condition applies</span>
+      </div>
+    </section>
+
+    <!-- ================= CHECKLIST ================= -->
+    <section class="card" aria-label="Daily checklist">
+      <h2 contenteditable="true" data-field="checklist_title" spellcheck="false">Daily Checklist</h2>
+      <p class="desc" contenteditable="true" data-field="checklist_desc" spellcheck="false">Tap each row to mark as done. Resets each day.</p>
+
+      <div class="checklist">
+        <div class="check" data-check-id="c1">
+          <div class="box" aria-hidden="true"></div>
+          <div class="content">
+            <strong contenteditable="true" data-field="c1_title" spellcheck="false">Before breakfast</strong>
+            <span contenteditable="true" data-field="c1_desc" spellcheck="false">[Medicine A]</span>
+          </div>
+        </div>
+        <div class="check" data-check-id="c2">
+          <div class="box" aria-hidden="true"></div>
+          <div class="content">
+            <strong contenteditable="true" data-field="c2_title" spellcheck="false">Morning</strong>
+            <span contenteditable="true" data-field="c2_desc" spellcheck="false">[Medicine B], [Supplement], [Medicine C]</span>
+          </div>
+        </div>
+        <div class="check" data-check-id="c3">
+          <div class="box" aria-hidden="true"></div>
+          <div class="content">
+            <strong contenteditable="true" data-field="c3_title" spellcheck="false">Afternoon</strong>
+            <span contenteditable="true" data-field="c3_desc" spellcheck="false">[Medicine D], second [Supplement]</span>
+          </div>
+        </div>
+        <div class="check" data-check-id="c4">
+          <div class="box" aria-hidden="true"></div>
+          <div class="content">
+            <strong contenteditable="true" data-field="c4_title" spellcheck="false">Evening</strong>
+            <span contenteditable="true" data-field="c4_desc" spellcheck="false">[Medicine E], second [Medicine D]</span>
+          </div>
+        </div>
+        <div class="check" data-check-id="c5">
+          <div class="box" aria-hidden="true"></div>
+          <div class="content">
+            <strong contenteditable="true" data-field="c5_title" spellcheck="false">Bedtime</strong>
+            <span contenteditable="true" data-field="c5_desc" spellcheck="false">[Medicine F]</span>
+          </div>
+        </div>
+        <div class="check" data-check-id="c6">
+          <div class="box" aria-hidden="true"></div>
+          <div class="content">
+            <strong contenteditable="true" data-field="c6_title" spellcheck="false">SOS only</strong>
+            <span contenteditable="true" data-field="c6_desc" spellcheck="false">[Emergency Medicine] — only if condition applies</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="note">
+      <h2>About this page</h2>
+      <p>
+        This is a reference aid, structured for easy reading on a phone.
+        It is <strong>not a substitute</strong> for the doctor's signed prescription or the pharmacist's advice.
+      </p>
+      <p>
+        Every dose, timing, and medicine name should be verified against the original prescription before use.
+        If anything looks wrong, defer to the doctor's written instruction.
+      </p>
+    </aside>
+
+    <p class="foot">
+      Example page — tap any text to edit. Changes save to this device only.
+    </p>
+
+  </main>
+
+  <script>
+    // ============================================================
+    //  Simple persistence: contenteditable fields save to localStorage
+    //  keyed by data-field. No frameworks, no dependencies.
+    // ============================================================
+    (function () {
+      const STORAGE_KEY = 'medicine-plan-v1';
+      const CHECKS_KEY = 'medicine-plan-checks-v1';
+      const banner = document.getElementById('save-banner');
+      let saveTimer;
+
+      // ---- Load saved edits ----
+      let saved = {};
+      try {
+        saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch (e) { saved = {}; }
+
+      document.querySelectorAll('[contenteditable="true"][data-field]').forEach(el => {
+        const key = el.dataset.field;
+        if (saved[key] !== undefined) {
+          el.textContent = saved[key];
+        }
+      });
+
+      // ---- Save on edit ----
+      function persist() {
+        const data = {};
+        document.querySelectorAll('[contenteditable="true"][data-field]').forEach(el => {
+          data[el.dataset.field] = el.textContent;
+        });
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          showSaved();
+        } catch (e) {
+          // Storage may fail in private mode; silently ignore
+        }
+      }
+
+      function showSaved() {
+        banner.classList.add('show');
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => banner.classList.remove('show'), 1500);
+      }
+
+      // Debounced save
+      let inputTimer;
+      document.addEventListener('input', function (e) {
+        if (e.target.matches('[contenteditable="true"][data-field]')) {
+          clearTimeout(inputTimer);
+          inputTimer = setTimeout(persist, 500);
+        }
+      });
+
+      // Prevent line breaks in single-line fields on Enter
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && e.target.matches('[contenteditable="true"][data-field]')) {
+          e.preventDefault();
+          e.target.blur();
+        }
+      });
+
+      // ---- Checklist state ----
+      let checks = {};
+      try {
+        checks = JSON.parse(localStorage.getItem(CHECKS_KEY) || '{}');
+      } catch (e) { checks = {}; }
+
+      document.querySelectorAll('.check').forEach(el => {
+        const id = el.dataset.checkId;
+        if (checks[id]) el.classList.add('done');
+        el.addEventListener('click', function (e) {
+          // Don't toggle if user clicked inside an editable text field
+          if (e.target.matches('[contenteditable="true"]')) return;
+          el.classList.toggle('done');
+          checks[id] = el.classList.contains('done');
+          try {
+            localStorage.setItem(CHECKS_KEY, JSON.stringify(checks));
+          } catch (e) {}
+        });
+      });
+
+      // ---- Toolbar ----
+      document.getElementById('print-btn').addEventListener('click', () => window.print());
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        if (confirm('Reset all edits and checkmarks to defaults?')) {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(CHECKS_KEY);
+          location.reload();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
